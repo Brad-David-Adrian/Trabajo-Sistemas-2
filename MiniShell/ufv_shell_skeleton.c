@@ -1,3 +1,5 @@
+//gcc -Wall -o ufv_shell ufv_shell.c tokenizer.c
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,7 +33,9 @@ fun_desc_t cmd_table[] = {
 /* ── Built-in implementations ── */
 
 int cmd_exit(unused struct tokens *tokens) {
+  (void) tokens;
   exit(0);
+  return 0;
 }
 
 int cmd_pwd(unused struct tokens *tokens) {
@@ -140,6 +144,16 @@ int main(unused int argc, unused char *argv[]) {
 
   while (fgets(line, sizeof(line), stdin)) {
     struct tokens *tokens = tokenize(line);
+    if (tokens == NULL) {
+      continue;
+    }
+
+    if (tokens_get_length(tokens) == 0) {
+      tokens_destroy(tokens);
+      fprintf(stdout, "%s: ", prompt);
+      fflush(stdout);
+      continue;
+    }
 
     int fundex = lookup(tokens_get_token(tokens, 0));
 
