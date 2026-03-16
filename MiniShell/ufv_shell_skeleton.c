@@ -113,8 +113,9 @@ int run_program(struct tokens *tokens) {
   }
 
   if (pid == 0) {
-    /* Child: try direct path, then search PATH */
-    execv(prog, args);
+    /* Child: try direct path using execvp (PATH-aware) */
+    execvp(prog, args);
+    /* Fallback to manual PATH search for educational purposes */
     run_program_thru_path(prog, args);
     fprintf(stderr, "ufv: %s: command not found\n", prog);
     free(args);
@@ -122,7 +123,10 @@ int run_program(struct tokens *tokens) {
   } else {
     /* Parent: wait for child */
     int status = 0;
-    waitpid(pid, &status, 0);
+    if (waitpid(pid, &status, 0) < 0) {
+      perror("waitpid");
+      status = -1;
+    }
     free(args);
     return status;
   }

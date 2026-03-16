@@ -56,7 +56,7 @@ struct tokens *tokenize(const char *line) {
         if (i + 1 < line_length) {
           token[n++] = line[++i];
         }
-      } else if (isspace(c)) {
+      } else if (isspace((unsigned char)c)) {
         if (n > 0) {
           void *word = copy_word(token, n);
           vector_push(&tokens->tokens, &tokens->tokens_length, word);
@@ -120,8 +120,12 @@ void tokens_destroy(struct tokens *tokens) {
   for (int i = 0; i < tokens->tokens_length; i++) {
     free(tokens->tokens[i]);
   }
+  free(tokens->tokens);
+
   for (int i = 0; i < tokens->buffers_length; i++) {
     free(tokens->buffers[i]);
   }
+  free(tokens->buffers);
+
   free(tokens);
 }
