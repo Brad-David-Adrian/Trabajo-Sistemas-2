@@ -5,53 +5,70 @@ Mini-shell UFV - Puntos para defensa
   * Comandos built-in: exit, pwd, cd
   * Ejecución de programas externos con fork/exec
   * Búsqueda de ejecutables en PATH
-  * Lectura de línea e tokenización
+  * Lectura de línea y tokenización con comillas/escapes
 
 2) Estructura principal (ufv_shell_skeleton.c)
-- main(): loop de lectura con fgets, tokeniza, busca built-in, ejecuta programa externo, imprime prompt.
-- tokenize(): convierte línea en palabras respetando comillas y escapes.
-- cmd_table[]: tabla de built-ins con función, nombre y doc.
+- `main()`: loop infinito con prompt (`ufv: `), `fgets`, tokenización, selección de built-in o ejecución externa.
+- `tokenize()`: convierte cada línea en vector de palabras; maneja espacio, comillas y caracteres escapados.
+- `cmd_table[]`: tabla de built-ins con función, nombre y documentación.
 
-3) Correcciones aplicadas
-- cmd_exit: se añadió `(void) tokens;` y `return 0;` para evitar warnings / semántica.
-- main: se agregó validación de `tokens == NULL`, y manejo para `tokens_get_length(tokens) == 0`.
-  * Esto previene crash en línea vacía o tokenización fallida.
-- run_program: retorno de error con malloc/fork fallidos y liberación de args.
-- Prompt: se imprime `ufv: ` antes y después de cada comando para interacción clara.
+3) Correcciones aplicadas en el código final
+- **`cmd_exit`**: retorna 0 y evita warnings.
+- **Validación robusta**: controlar `tokens == NULL` y `tokens_get_length(tokens) == 0`, evitando crashes en entradas vacías.
+- **Ejecución externa mejorada**:
+  * En el hijo, se usa `execvp(prog, args)` (PATH-aware).
+  * Si falla, se intenta `run_program_thru_path(...)` manual.
+  * Muestra mensaje `ufv: <comando>: command not found` si no se encuentra el ejecutable.
+- **Manejo de memoria**:
+  * Se libera `args` en todos los flujos.
+  * `tokens_destroy()` libera tokens y buffers.
+- **Manejo de errores**:
+  * `malloc`, `fork` y `waitpid` tienen comprobaciones y `perror`.
+- **UX**:
+  * Prompt `ufv: ` mostrado con `fflush(stdout)` tras cada iteración.
 
-4) Comandos de prueba
-- Compilar con MinGW-w64 (gcc):
-  gcc -Wall -o ufv_shell_skeleton ufv_shell_skeleton.c tokenizer.c
+4) Ejecución y pruebas (comandos)
+- Compilar con MinGW-w64 (MSYS2):
+  `gcc -Wall -o ufv_shell ufv_shell_skeleton.c tokenizer.c`
 - Ejecutar:
-  ./ufv_shell_skeleton
-- Probar built-ins:
-  ufv: pwd
-  ufv: cd ..
-  ufv: pwd
-  ufv: exit
-- Probar externo:
-  ufv: echo hola
-  ufv: ls -la
+  `./ufv_shell`
+- Built-ins:
+  `ufv: pwd`
+  `ufv: cd ..`
+  `ufv: pwd`
+  `ufv: exit`
+- Programas externos:
+  `ufv: echo hola`
+  `ufv: ls -la`
 
 5) Manejo de errores y robustez
-- Si no hay PATH, run_program_thru_path devuelve -1.
-- Child: intenta execv(prog,...), luego PATH, y finalmente imprime "command not found".
-- Parent: waitpid para sincronización.
+- PATH: si `PATH` no está, `run_program_thru_path` devuelve `-1`.
+- Proceso hijo: intenta `execvp` y fallback manual en PATH.
+- Proceso padre: `waitpid` para sincronizar y evitar zombies.
+- Input inválido: línea vacía o nula no rompe el shell.
 
-6) Aprendizaje clave
-- El shell combina parsing con procesos: tokenizar --> fork --> exec
-- La robustez requiere validaciones de punteros y memoria
-- Detalles de UX: prompt + fflush
+6) Aprendizajes para la defensa
+- El shell realiza un flujo clásico: parsear entrada, detectar built-in, o ejecutar binario externo.
+- La memoria y validaciones son clave en C para evitar errores de segmentación.
+- El uso de `fork/exec` modela el funcionamiento real de shells UNIX.
 
+7) Diagrama simplificado para explicar en la defensa
+1. Input del usuario -> `fgets`
+2. `tokenize(line)` -> tokens
+3. Si tokens vacíos -> prompt
+4. `lookup` built-in:
+   - sí: ejecutar función `cmd_*`
+   - no: `fork` y `execvp` en hijo
+5. Padre espera con `waitpid`
+6. Volver a prompt
 
-Opcional: para la defensa puedes mostrar un diagrama rápido:
-1) Input line -> tokenize -> tokens
-2) lookup built-in? -> yes: handler
-3) no: fork child -> execv / PATH
-4) parent waitpid -> prompt
+8) Notas de instalación en Windows
+- Instalar MSYS2 + mingw-w64.
+- En MSYS2:
+  `pacman -Syu`
+  `pacman -S --needed base-devel mingw-w64-x86_64-toolchain`
+- Compilar usando `gcc` desde el shell mingw64.
 
+9) Resultado
+El mini-shell implementa comandos internos y externos con procesamiento de tokens, gestión de procesos y robustez básica; es un proyecto ideal para demostrar conocimiento de sistemas operativos y programación en C.
 
-Notas de instalación recomendada en Windows:
-- Instalar MSYS2 + mingw-w64
-- En terminal MSYS2: pacman -Syu ; pacman -S --needed base-devel mingw-w64-x86_64-toolchain
-- Usar gcc desde mingw64/bin

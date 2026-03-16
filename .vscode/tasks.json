@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build ufv_shell",
+      "type": "shell",
+      "command": "gcc",
+      "args": ["-Wall", "-o", "${workspaceFolder}/MiniShell/ufv_shell", "${workspaceFolder}/MiniShell/ufv_shell_skeleton.c", "${workspaceFolder}/MiniShell/tokenizer.c"],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Run ufv_shell",
+      "type": "shell",
+      "dependsOn": "Build ufv_shell",
+      "command": "${workspaceFolder}/MiniShell/ufv_shell",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    }
+  ]
+}
