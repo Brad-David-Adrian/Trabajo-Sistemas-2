@@ -10,7 +10,7 @@ Proyecto: un mini-shell en C con built-ins y ejecución de comandos externos.
 - `MiniShell/tokenizer.h`
 
 ### Cómo compilar
-Recomendado: usar MinGW-w64 en Windows.
+Recomendado: usar MinGW-w64 en Windows
 
 En terminal (MSYS2/Mingw64):
 ```bash
