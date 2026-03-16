@@ -1,0 +1,57 @@
+Mini-shell UFV - Puntos para defensa
+
+1) Objetivo del proyecto
+- Implementar un shell simple (interactivo) que soporte:
+  * Comandos built-in: exit, pwd, cd
+  * Ejecución de programas externos con fork/exec
+  * Búsqueda de ejecutables en PATH
+  * Lectura de línea e tokenización
+
+2) Estructura principal (ufv_shell_skeleton.c)
+- main(): loop de lectura con fgets, tokeniza, busca built-in, ejecuta programa externo, imprime prompt.
+- tokenize(): convierte línea en palabras respetando comillas y escapes.
+- cmd_table[]: tabla de built-ins con función, nombre y doc.
+
+3) Correcciones aplicadas
+- cmd_exit: se añadió `(void) tokens;` y `return 0;` para evitar warnings / semántica.
+- main: se agregó validación de `tokens == NULL`, y manejo para `tokens_get_length(tokens) == 0`.
+  * Esto previene crash en línea vacía o tokenización fallida.
+- run_program: retorno de error con malloc/fork fallidos y liberación de args.
+- Prompt: se imprime `ufv: ` antes y después de cada comando para interacción clara.
+
+4) Comandos de prueba
+- Compilar con MinGW-w64 (gcc):
+  gcc -Wall -o ufv_shell_skeleton ufv_shell_skeleton.c tokenizer.c
+- Ejecutar:
+  ./ufv_shell_skeleton
+- Probar built-ins:
+  ufv: pwd
+  ufv: cd ..
+  ufv: pwd
+  ufv: exit
+- Probar externo:
+  ufv: echo hola
+  ufv: ls -la
+
+5) Manejo de errores y robustez
+- Si no hay PATH, run_program_thru_path devuelve -1.
+- Child: intenta execv(prog,...), luego PATH, y finalmente imprime "command not found".
+- Parent: waitpid para sincronización.
+
+6) Aprendizaje clave
+- El shell combina parsing con procesos: tokenizar --> fork --> exec
+- La robustez requiere validaciones de punteros y memoria
+- Detalles de UX: prompt + fflush
+
+
+Opcional: para la defensa puedes mostrar un diagrama rápido:
+1) Input line -> tokenize -> tokens
+2) lookup built-in? -> yes: handler
+3) no: fork child -> execv / PATH
+4) parent waitpid -> prompt
+
+
+Notas de instalación recomendada en Windows:
+- Instalar MSYS2 + mingw-w64
+- En terminal MSYS2: pacman -Syu ; pacman -S --needed base-devel mingw-w64-x86_64-toolchain
+- Usar gcc desde mingw64/bin
