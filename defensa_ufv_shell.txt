@@ -1,74 +1,101 @@
-Mini-shell UFV - Puntos para defensa
+Mini-shell UFV - Guía de Defensa
 
-1) Objetivo del proyecto
-- Implementar un shell simple (interactivo) que soporte:
-  * Comandos built-in: exit, pwd, cd
-  * Ejecución de programas externos con fork/exec
-  * Búsqueda de ejecutables en PATH
-  * Lectura de línea y tokenización con comillas/escapes
+Objetivo del Proyecto
+Implementar un shell interactivo básico que demuestre conceptos de sistemas operativos: gestión de procesos, tokenización de entrada, comandos built-in vs. externos, y resolución de PATH.
 
-2) Estructura principal (ufv_shell_skeleton.c)
-- `main()`: loop infinito con prompt (`ufv: `), `fgets`, tokenización, selección de built-in o ejecución externa.
-- `tokenize()`: convierte cada línea en vector de palabras; maneja espacio, comillas y caracteres escapados.
-- `cmd_table[]`: tabla de built-ins con función, nombre y documentación.
+Estructura General del Código
+- **main()**: Bucle REPL (Read-Eval-Print Loop) con prompt "ufv: ", lee entrada con fgets, tokeniza, ejecuta comando y repite.
+- **Tokenización**: Maneja espacios, comillas simples/dobles y escapes (\) para dividir la línea en tokens.
+- **Tabla de comandos**: cmd_table[] asocia nombres de built-ins con funciones.
 
-3) Correcciones aplicadas en el código final
-- **`cmd_exit`**: retorna 0 y evita warnings.
-- **Validación robusta**: controlar `tokens == NULL` y `tokens_get_length(tokens) == 0`, evitando crashes en entradas vacías.
-- **Ejecución externa mejorada**:
-  * En el hijo, se usa `execvp(prog, args)` (PATH-aware).
-  * Si falla, se intenta `run_program_thru_path(...)` manual.
-  * Muestra mensaje `ufv: <comando>: command not found` si no se encuentra el ejecutable.
-- **Manejo de memoria**:
-  * Se libera `args` en todos los flujos.
-  * `tokens_destroy()` libera tokens y buffers.
-- **Manejo de errores**:
-  * `malloc`, `fork` y `waitpid` tienen comprobaciones y `perror`.
-- **UX**:
-  * Prompt `ufv: ` mostrado con `fflush(stdout)` tras cada iteración.
+Comandos Built-in
 
-4) Ejecución y pruebas (comandos)
-- Compilar con MinGW-w64 (MSYS2):
-  `gcc -Wall -o ufv_shell ufv_shell_skeleton.c tokenizer.c`
-- Ejecutar:
-  `./ufv_shell`
-- Built-ins:
-  `ufv: pwd`
-  `ufv: cd ..`
-  `ufv: pwd`
-  `ufv: exit`
-- Programas externos:
-  `ufv: echo hola`
-  `ufv: ls -la`
+1. **exit**
+   - **Propósito**: Termina la shell inmediatamente.
+   - **Implementación**: Llama a exit(0) sin argumentos. Debe ser built-in porque no puede ejecutarse en un proceso hijo (el hijo terminaría, pero el padre seguiría).
+   - **Ejemplo**:
+     ```
+     ufv: exit
+     ```
+     Salida: El shell se cierra.
 
-5) Manejo de errores y robustez
-- PATH: si `PATH` no está, `run_program_thru_path` devuelve `-1`.
-- Proceso hijo: intenta `execvp` y fallback manual en PATH.
-- Proceso padre: `waitpid` para sincronizar y evitar zombies.
-- Input inválido: línea vacía o nula no rompe el shell.
+2. **pwd** (Print Working Directory)
+   - **Propósito**: Muestra el directorio de trabajo actual.
+   - **Implementación**: Usa getcwd() para obtener el path absoluto. Si falla, muestra error con perror("pwd").
+   - **Por qué built-in**: Los cambios de directorio deben afectar al proceso padre, no al hijo.
+   - **Ejemplo**:
+     ```
+     ufv: pwd
+     /Users/brad/Desktop/SI2/Trabajo-Sistemas-2
+     ufv:
+     ```
 
-6) Aprendizajes para la defensa
-- El shell realiza un flujo clásico: parsear entrada, detectar built-in, o ejecutar binario externo.
-- La memoria y validaciones son clave en C para evitar errores de segmentación.
-- El uso de `fork/exec` modela el funcionamiento real de shells UNIX.
+3. **cd** (Change Directory)
+   - **Propósito**: Cambia el directorio de trabajo actual.
+   - **Implementación**: Usa chdir(). Si no se da argumento, va a HOME (getenv("HOME")). Maneja errores con perror("cd").
+   - **Por qué built-in**: Similar a pwd, para que el cambio persista en la shell padre.
+   - **Ejemplos**:
+     ```
+     ufv: cd ..
+     ufv: pwd
+     /Users/brad/Desktop/SI2
+     ufv: cd /tmp
+     ufv: pwd
+     /tmp
+     ufv: cd
+     ufv: pwd
+     /Users/brad
+     ```
 
-7) Diagrama simplificado para explicar en la defensa
-1. Input del usuario -> `fgets`
-2. `tokenize(line)` -> tokens
-3. Si tokens vacíos -> prompt
-4. `lookup` built-in:
-   - sí: ejecutar función `cmd_*`
-   - no: `fork` y `execvp` en hijo
-5. Padre espera con `waitpid`
-6. Volver a prompt
+Ejecución de Programas Externos
+- **Propósito**: Ejecutar comandos no built-in como programas del sistema.
+- **Implementación**:
+  - Crea proceso hijo con fork().
+  - En el hijo: execvp() busca en PATH; si falla, run_program_thru_path() (manual con strtok_r).
+  - Padre espera con waitpid() para evitar zombies.
+  - Si no se encuentra: "ufv: <comando>: command not found".
+- **Manejo de PATH**: execvp() usa la variable de entorno PATH automáticamente. El fallback manual demuestra comprensión de cómo funciona.
+- **Ejemplos**:
+  - Con PATH:
+    ```
+    ufv: ls -la
+    total 16
+    drwxr-xr-x  5 brad staff  160 Mar 17 10:00 .
+    drwxr-xr-x  3 brad staff   96 Mar 17 09:00 ..
+    -rw-r--r--  1 brad staff  512 Mar 17 10:00 README.md
+    ...
+    ```
+  - Con path absoluto:
+    ```
+    ufv: /bin/echo "Hola Mundo"
+    Hola Mundo
+    ```
+  - Comando no encontrado:
+    ```
+    ufv: nonexistentcommand
+    ufv: nonexistentcommand: command not found
+    ```
 
-8) Notas de instalación en Windows
-- Instalar MSYS2 + mingw-w64.
-- En MSYS2:
-  `pacman -Syu`
-  `pacman -S --needed base-devel mingw-w64-x86_64-toolchain`
-- Compilar usando `gcc` desde el shell mingw64.
+Manejo de Errores y Robustez
+- **Validaciones**: tokens == NULL o longitud 0 saltan al prompt sin crash.
+- **Memoria**: args liberado en padre e hijo; tokens_destroy() libera todo.
+- **Errores**: perror() para fork, malloc, chdir, etc. Códigos de retorno propagados.
+- **Input especial**: Líneas vacías, solo espacios, o con comillas/escapes manejadas correctamente.
 
-9) Resultado
-El mini-shell implementa comandos internos y externos con procesamiento de tokens, gestión de procesos y robustez básica; es un proyecto ideal para demostrar conocimiento de sistemas operativos y programación en C.
+Aprendizajes Clave
+- Flujo de una shell: parsing → built-in check → fork/exec → wait.
+- Importancia de gestión de procesos y memoria en C.
+- Diferencia entre built-ins (efectos en padre) y externos (en hijo).
+
+Diagrama de Flujo Simplificado
+1. Usuario ingresa línea → fgets()
+2. tokenize() → array de tokens
+3. Si vacío → mostrar prompt
+4. lookup() en cmd_table:
+   - Match: ejecutar función built-in
+   - No match: fork() → execvp() en hijo → waitpid() en padre
+5. Mostrar prompt y repetir
+
+Resultado
+Este mini-shell demuestra implementación completa de un intérprete de comandos básico, con énfasis en procesos, PATH y robustez, ideal para evaluar conocimientos en SO y C.
 
