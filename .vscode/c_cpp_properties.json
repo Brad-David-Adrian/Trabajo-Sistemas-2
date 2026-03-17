@@ -5,12 +5,14 @@
       "includePath": [
         "${workspaceFolder}/**"
       ],
+      "defines": ["_GNU_SOURCE"],
       "compilerPath": "gcc",
-      "cStandard": "${default}",
-      "cppStandard": "${default}",
+      "cStandard": "c99",
+      "cppStandard": "c++11",
       "intelliSenseMode": "windows-gcc-x64",
       "compilerArgs": [
-        ""
+        "-Wall",
+        "-Wextra"
       ]
     }
   ],

@@ -4,8 +4,16 @@
     {
       "label": "Build ufv_shell",
       "type": "shell",
-      "command": "gcc",
-      "args": ["-Wall", "-o", "${workspaceFolder}/MiniShell/ufv_shell", "${workspaceFolder}/MiniShell/ufv_shell_skeleton.c", "${workspaceFolder}/MiniShell/tokenizer.c"],
+      "command": "C:\\msys64\\mingw64\\bin\\gcc.exe",
+      "args": [
+        "-Wall",
+        "-Wextra",
+        "-std=c99",
+        "-o",
+        "${workspaceFolder}/MiniShell/ufv_shell",
+        "${workspaceFolder}/MiniShell/ufv_shell_skeleton.c",
+        "${workspaceFolder}/MiniShell/tokenizer.c"
+      ],
       "group": "build",
       "presentation": {
         "reveal": "always",
