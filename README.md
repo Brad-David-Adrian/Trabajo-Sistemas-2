@@ -1,100 +1,94 @@
 # Trabajo-Sistemas-2
-Segundo trabajo de SI
+Proyecto: MiniShell UFV (Segunda pr醕tica de Sistemas Operativos)
 
-## MiniShell UFV
-Proyecto: un mini-shell en C con built-ins y ejecuci贸n de comandos externos.
+## Descripci髇
+Mini-shell en C que implementa un REPL simple con:
+- Built-ins: `exit`, `pwd`, `cd`
+- Ejecuci髇 de programas externos con `fork` + `execvp`
+- B鷖queda en PATH y fallback manual
+- Tokenizaci髇 b醩ica con comillas simples/dobles y escapes
 
-### Archivos principales
+## Archivos principales
 - `MiniShell/ufv_shell_skeleton.c`
 - `MiniShell/tokenizer.c`
 - `MiniShell/tokenizer.h`
 
-### C贸mo compilar
-Recomendado: usar MSYS2 + MinGW-w64 en Windows, o GCC en Linux.
+## Compilaci髇 por sistema
+### Windows (MSYS2/MinGW 64-bit)
+1. Instala MSYS2: https://www.msys2.org/
+2. En `MSYS2 MinGW 64-bit`, ejecuta:
+   ```bash
+   pacman -Syu
+   pacman -S --needed base-devel mingw-w64-x86_64-toolchain
+   ```
+3. Compila:
+   ```bash
+   gcc -Wall -Wextra -std=c99 -o MiniShell/ufv_shell MiniShell/ufv_shell_skeleton.c MiniShell/tokenizer.c
+   ```
+4. Ejecuta:
+   ```bash
+   ./MiniShell/ufv_shell
+   ```
 
-En terminal (MSYS2/Mingw64):
+### Linux
 ```bash
-gcc -Wall -o ufv_shell ufv_shell_skeleton.c tokenizer.c
+gcc -Wall -Wextra -std=c99 -o MiniShell/ufv_shell MiniShell/ufv_shell_skeleton.c MiniShell/tokenizer.c
+./MiniShell/ufv_shell
 ```
 
-### C贸mo ejecutar
+### macOS
+Usa `clang` o GCC de Homebrew:
 ```bash
-./ufv_shell
+clang -Wall -Wextra -std=c99 -o MiniShell/ufv_shell MiniShell/ufv_shell_skeleton.c MiniShell/tokenizer.c
+./MiniShell/ufv_shell
 ```
-Comandos de ejemplo:
+Si usas gcc de Homebrew:
+```bash
+brew install gcc
+gcc-14 -Wall -Wextra -std=c99 -o MiniShell/ufv_shell MiniShell/ufv_shell_skeleton.c MiniShell/tokenizer.c
+```
+
+## Ejecuci髇
+```bash
+./MiniShell/ufv_shell
+```
+Comandos de prueba:
 - `pwd`
 - `cd <ruta>`
-- `exit`
 - `ls -la`
 - `echo hola`
-
-### Cambios y correcciones clave aplicadas
-1. **Built-in `exit`**: se mantiene la firma y se retorna `0`.
-2. **Validaci贸n de tokens**: se comprueba `tokens == NULL` y `tokens_get_length(tokens) == 0` para evitar crash en l铆neas vac铆as.
-3. **Ejecuci贸n externa mejorada**:
-   - En el hijo se usa `execvp(prog, args)` para usar PATH autom谩ticamente.
-   - Si falla, se intenta `run_program_thru_path(...)` manual.
-   - Se imprime mensaje "command not found" y se libera memory antes de `exit(1)`.
-4. **Manejo de errores**:
-   - Verificaci贸n de `malloc` y `fork`.
-   - Mensajes de `perror(...)` cuando fallan.
-5. **Tokenizador robusto**:
-   - Usa `isspace((unsigned char)c)`.
-   - Soporte b谩sico de comillas simples, dobles y escapes.
-6. **Limpieza de memoria**:
-   - `tokens_destroy(...)` libera `tokens->tokens`, `tokens->buffers` y `tokens`.
-7. **Prompt interactivo**:
-   - Se imprime `ufv: ` antes y despu茅s de cada comando; se hace `fflush(stdout)` para visualizaci贸n inmediata.
-
-### Estructura de funcionamiento (concepto)
-1. Leer l铆nea con `fgets`.
-2. Tokenizar con `tokenize(line)`.
-3. Si no hay tokens, mostrar prompt y continuar.
-4. Buscar built-in en `cmd_table`; si existe, ejecutar.
-5. Si no es built-in, crear proceso hijo con `fork`:
-   - en hijo: `execvp(...)` o PATH manual.
-   - en padre: `waitpid(...)`.
-6. Devolver control al loop y mostrar prompt.
-
-### Diagrama en texto
-```text
-Usuario -> fgets
-         -> tokenize
-         -> tokens len == 0 ? prompt
-         -> lookup built-in
-           -> s铆 -> ejecutar built-in
-           -> no -> fork -> hijo execvp -> padre waitpid
-         -> prompt
-```
-
-### Secciones para la defensa (recomendado)
-- **Tokenizaci贸n**: c贸mo se manejan espacios, comillas y escapes.
-- **Built-ins**: `exit`, `pwd`, `cd`.
-- **Ejecuci贸n externa**: `fork`, `execvp`, PATH.
-- **Robustez**: validaciones y liberaci贸n de memoria.
-
-### Comandos de prueba
-```bash
-gcc -Wall -o ufv_shell ufv_shell_skeleton.c tokenizer.c
-./ufv_shell
-```
-Pruebas sugeridas:
-- `pwd`
-- `cd ..`
-- `pwd`
-- `echo hola`
-- `ls -la`
 - `exit`
 
-### Notas de instalaci贸n en Windows
-- Instalar MSYS2 + mingw-w64.
-- En terminal MSYS2:
-  `pacman -Syu`
-  `pacman -S --needed base-devel mingw-w64-x86_64-toolchain`
-- Ejecutar `gcc` desde mingw64/bin.
+## Integraci髇 con VS Code
+- Configura `.vscode/tasks.json` para llamar a tu compilador (ej. MSYS2 gcc en Windows).
+- Usa `.vscode/launch.json` con `cppdbg` + `gdb` para debug.
+
+## Defensa (puntos clave)
+1. **Arquitectura REPL**: `fgets` -> `tokenize` -> built-in vs externa -> prompt.
+2. **Tokenizaci髇**: manejo de espacios, comillas simples/dobles, escapes (`\\`).
+3. **Built-ins**: `exit`, `pwd` (getcwd), `cd` (chdir + HOME si no se da ruta).
+4. **Ejecuci髇 externa**: `fork`, `execvp`, `waitpid`, uso de PATH.
+5. **Manejo de errores**: `malloc`, `fork`, `chdir`, `exec`; `perror` y c骴igos.
+6. **Memoria**: `tokens_destroy` con `free` de cada token y buffers.
+7. **Cross-platform**: Windows+MSYS2, Linux, macOS.
+
+## Cambios aplicados (changelog)
+- Validaci髇 robusta de `tokens` nulos y longitud.
+- Consolidaci髇 de built-ins en tabla `cmd_table`.
+- Ejecuci髇 PATH-aware y fallback manual con `run_program_thru_path`.
+- Mejora de manejo de errores y mensajes.
+- Limpieza de memoria y prompt flush.
+
+## Nota sobre ejecuci髇 en macOS
+El c骴igo usa APIs POSIX (`fork`, `execvp`, `waitpid`, `getcwd`, `chdir`) compatibles en macOS. No hay dependencias de Windows en el c骴igo de shell.
+
+## Posibilidades futuras
+- Soporte de tuber韆s `|`, redirecci髇 `>`, `>>`, `2>&1`.
+- Soporte de comandos en background (`&`).
+- Historial y edici髇 de l韓ea.
+- Variables de entorno y alias.
 
 ---
 
-### Resultado final
-Este mini-shell es un prototipo funcional de un int茅rprete de comandos: lee input, tokeniza, ejecuta built-ins y programas externos con b煤squeda en PATH, manejo de errores y un prompt interactivo.
-
+## Resultado final
+Este mini-shell es un prototipo funcional para defensa: demuestra la implementaci髇 de un int閞prete de comandos con built-ins, ejecuci髇 externa y manejo de errores en C.
