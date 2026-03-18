@@ -1,16 +1,16 @@
-#pragma once
+#pragma once  // Evita inclusión múltiple del header
 
-/* A struct that represents a list of words. */
+/* Estructura que representa una lista de palabras (tokens). */
 struct tokens;
 
-/* Turn a string into a list of words. */
+/* Convierte una cadena en una lista de palabras. */
 struct tokens *tokenize(const char *line);
 
-/* How many words are there? */
+/* Devuelve el número de palabras (tokens). */
 size_t tokens_get_length(struct tokens *tokens);
 
-/* Get me the Nth word (zero-indexed) */
+/* Obtiene la N-ésima palabra (indexada desde 0). */
 char *tokens_get_token(struct tokens *tokens, size_t n);
 
-/* Free the memory */
+/* Libera la memoria asociada a la estructura. */
 void tokens_destroy(struct tokens *tokens);
