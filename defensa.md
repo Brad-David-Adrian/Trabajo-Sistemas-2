@@ -10,30 +10,30 @@
 ## 1. Introducción y Objetivos
 
 ### 1.1 Contexto
-Una shell es una interfaz de línea de comandos que permite a los usuarios interactuar con el sistema operativo. Proporciona acceso a servicios como gestión de archivos, procesos y ejecución de programas. Este proyecto implementa una mini-shell básica llamada "ufv_shell" que demuestra conceptos fundamentales de sistemas operativos en un entorno UNIX-like (compatible con Linux, macOS y Windows via MSYS2).
+Una shell es básicamente una interfaz de línea de comandos que deja a los usuarios interactuar con el sistema operativo. Da acceso a cosas como manejar archivos, procesos y ejecutar programas. Este proyecto hace una mini-shell llamada "ufv_shell" que muestra conceptos clave de sistemas operativos en un entorno tipo UNIX (funciona en Linux, macOS y Windows con MSYS2).
 
 ### 1.2 Objetivos del Proyecto
-- Implementar un shell interactivo (REPL: Read-Eval-Print Loop).
+- Hacer un shell interactivo (REPL: Read-Eval-Print Loop).
 - Soporte para comandos built-in: `exit`, `pwd`, `cd`.
-- Ejecución de programas externos con gestión de procesos (`fork`/`exec`).
-- Resolución automática de rutas usando la variable de entorno `PATH`.
-- Tokenización robusta de entrada, manejando espacios, comillas y escapes.
-- Gestión adecuada de memoria y errores para evitar crashes.
+- Ejecutar programas externos manejando procesos (`fork`/`exec`).
+- Resolver rutas automáticamente con la variable `PATH`.
+- Tokenizar la entrada de forma robusta, manejando espacios, comillas y escapes.
+- Manejar memoria y errores bien para evitar crashes.
 
 ### 1.3 Alcance
-El proyecto se basa en el estándar POSIX y APIs de C como `fork`, `execvp`, `waitpid`, `getcwd`, `chdir`. No incluye características avanzadas como tuberías, redirección o jobs en background, enfocándose en los fundamentos.
+El proyecto usa el estándar POSIX y APIs de C como `fork`, `execvp`, `waitpid`, `getcwd`, `chdir`. No incluye cosas avanzadas como tuberías, redirección o jobs en background, nos enfocamos en lo básico.
 
 ---
 
 ## 2. Arquitectura y Estructura del Código
 
 ### 2.1 Componentes Principales
-- **`ufv_shell_skeleton.c`**: Contiene la lógica principal del shell.
-- **`tokenizer.c` y `tokenizer.h`**: Módulo de tokenización para parsear la entrada del usuario.
-- **Archivos de configuración**: `tasks.json` para compilación en VS Code.
+- **`ufv_shell_skeleton.c`**: Tiene la lógica principal del shell.
+- **`tokenizer.c` y `tokenizer.h`**: Módulo para tokenizar la entrada del usuario.
+- **Archivos de configuración**: `tasks.json` para compilar en VS Code.
 
 ### 2.2 Flujo de Ejecución General
-El shell opera en un bucle infinito:
+El shell funciona en un bucle infinito:
 
 ```mermaid
 graph TD
@@ -50,6 +50,8 @@ graph TD
     G --> A
     J --> A
 ```
+
+Este diagrama muestra cómo fluye el programa: lee, procesa, ejecuta y repite.
 
 ### 2.3 Estructura de Datos Clave
 - **`struct tokens`**: Representa la lista de tokens parseados.
@@ -306,7 +308,7 @@ ufv: exit
 
 ### 8.2 Diferencias con Shells Reales
 - **Bash/Zsh**: Soporte para tuberías (`|`), redirección (`>`), variables, scripting.
-- **Nuestra implementación**: Enfocada en fundamentos, sin features avanzadas.
+- **Nuestra implementación**: Nos enfocamos en lo básico, sin features avanzadas.
 
 ### 8.3 Mejoras Futuras
 - Tuberías con `pipe`.
@@ -314,7 +316,7 @@ ufv: exit
 - Jobs en background (`&`).
 - Historial y autocompletado.
 
-Este proyecto demuestra una comprensión sólida de sistemas operativos y programación en C, implementando un shell funcional desde cero.
+Este proyecto muestra que entendemos bien los sistemas operativos y C, haciendo un shell que funciona desde cero.
 
 ---
 
